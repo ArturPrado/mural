@@ -1,5 +1,5 @@
 <?php
-include "conexao.php";
+include "/pages/conexao.php";
 
 // Atualizar recado
 if(isset($_POST['atualiza'])){
