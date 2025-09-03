@@ -7,35 +7,44 @@ $sucesso = '';
 
 // Verificar se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $usuario = mysqli_real_escape_string($conexao, $_POST['usuario']);
-    $senha = mysqli_real_escape_string($conexao, $_POST['senha']);
-    
-    // Verificar se os campos estão preenchidos
-    if (empty($usuario) || empty($senha)) {
-        $erro = 'Por favor, preencha todos os campos.';
+    $nome = mysqli_real_escape_string($conexao, trim($_POST['nome']));
+    $email = mysqli_real_escape_string($conexao, trim($_POST['email']));
+    $senha = $_POST['senha'];
+    $confirmar_senha = $_POST['confirmar_senha'];
+
+    // Validações
+    if (empty($nome) || empty($email) || empty($senha) || empty($confirmar_senha)) {
+        $erro = 'Todos os campos são obrigatórios.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $erro = 'Email inválido.';
+    } elseif (strlen($senha) < 6) {
+        $erro = 'A senha deve ter pelo menos 6 caracteres.';
+    } elseif ($senha !== $confirmar_senha) {
+        $erro = 'As senhas não coincidem.';
     } else {
-        // Consultar o banco de dados para verificar o usuário
-        $query = "SELECT * FROM mural.usuarios WHERE nome = '$usuario' OR email = '$usuario'";
+        // Verificar se email já existe
+        $query = "SELECT id FROM usuarios WHERE email = '$email'";
         $resultado = mysqli_query($conexao, $query);
-        
-        if ($resultado && mysqli_num_rows($resultado) > 0) {
-            $usuario_data = mysqli_fetch_assoc($resultado);
-            
-            // Verificar a senha usando password_verify
-            if (password_verify($senha, $usuario_data['senha'])) {
-                // Login bem-sucedido
-                $_SESSION['usuario_id'] = $usuario_data['id'];
-                $_SESSION['usuario_nome'] = $usuario_data['nome'];
-                $_SESSION['usuario_logado'] = true;
-                
-                // Redirecionar para a página mural
-                header('Location: mural.php');
-                exit();
-            } else {
-                $erro = 'Senha incorreta.';
-            }
+
+        if (mysqli_num_rows($resultado) > 0) {
+            $erro = 'Este email já está cadastrado.';
         } else {
-            $erro = 'Usuário não encontrado.';
+            // Hash da senha
+            $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
+
+            // Inserir novo usuário
+            $query = "INSERT INTO usuarios (nome, email, senha) VALUES ('$nome', '$email', '$senha_hash')";
+
+            if (mysqli_query($conexao, $query)) {
+                $sucesso = 'Conta criada com sucesso! Faça login.';
+                // Opcional: auto-login após registro
+                // $_SESSION['usuario_id'] = mysqli_insert_id($conexao);
+                // $_SESSION['usuario_nome'] = $nome;
+                // $_SESSION['usuario_logado'] = true;
+                // header('Location: mural.php');
+            } else {
+                $erro = 'Erro ao criar conta. Tente novamente.';
+            }
         }
     }
 }
@@ -51,42 +60,43 @@ if (isset($_SESSION['usuario_logado']) && $_SESSION['usuario_logado'] === true) 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema Mural</title>
+    <title>Registrar - Sistema Mural</title>
     <link rel="stylesheet" href="style.css">
     <script src="scripts/jquery.js"></script>
     <script src="scripts/jquery.validate.js"></script>
     <style>
-        .login-container {
+        .register-container {
             max-width: 400px;
-            margin: 100px auto;
+            margin: 50px auto;
             padding: 30px;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
-        
-        .login-header {
+
+        .register-header {
             text-align: center;
             margin-bottom: 30px;
         }
-        
-        .login-header h1 {
+
+        .register-header h1 {
             color: #4285f4;
             margin-bottom: 10px;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
             color: #555;
         }
-        
+
         .form-group input[type="text"],
+        .form-group input[type="email"],
         .form-group input[type="password"] {
             width: 100%;
             padding: 12px;
@@ -95,14 +105,14 @@ if (isset($_SESSION['usuario_logado']) && $_SESSION['usuario_logado'] === true) 
             font-size: 16px;
             box-sizing: border-box;
         }
-        
+
         .form-group input:focus {
             border-color: #4285f4;
             outline: none;
             box-shadow: 0 0 5px rgba(66, 133, 244, 0.3);
         }
-        
-        .btn-login {
+
+        .btn-register {
             width: 100%;
             padding: 12px;
             background-color: #4285f4;
@@ -113,86 +123,126 @@ if (isset($_SESSION['usuario_logado']) && $_SESSION['usuario_logado'] === true) 
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        
-        .btn-login:hover {
+
+        .btn-register:hover {
             background-color: #357ae8;
         }
-        
+
         .mensagem {
             padding: 10px;
             margin-bottom: 20px;
             border-radius: 4px;
             text-align: center;
         }
-        
+
         .erro {
             background-color: #ffebee;
             color: #c62828;
             border: 1px solid #ffcdd2;
         }
-        
+
         .sucesso {
             background-color: #e8f5e8;
             color: #2e7d32;
             border: 1px solid #c8e6c9;
         }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-link a {
+            color: #4285f4;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
+    <div class="register-container">
+        <div class="register-header">
             <h1>Sistema Mural</h1>
-            <p>Faça login para continuar</p>
+            <p>Criar nova conta</p>
         </div>
-        
+
         <?php if (!empty($erro)): ?>
             <div class="mensagem erro"><?php echo $erro; ?></div>
         <?php endif; ?>
-        
+
         <?php if (!empty($sucesso)): ?>
             <div class="mensagem sucesso"><?php echo $sucesso; ?></div>
         <?php endif; ?>
-        
-        <form id="loginForm" method="POST" action="">
+
+        <form id="registerForm" method="POST" action="">
             <div class="form-group">
-                <label for="usuario">Usuário ou Email:</label>
-                <input type="text" id="usuario" name="usuario" required>
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" name="nome" required>
             </div>
-            
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
             <div class="form-group">
                 <label for="senha">Senha:</label>
                 <input type="password" id="senha" name="senha" required>
             </div>
-            
-            <button type="submit" class="btn-login">Entrar</button>
+
+            <div class="form-group">
+                <label for="confirmar_senha">Confirmar Senha:</label>
+                <input type="password" id="confirmar_senha" name="confirmar_senha" required>
+            </div>
+
+            <button type="submit" class="btn-register">Criar Conta</button>
         </form>
 
-        <div style="text-align: center; margin-top: 20px;">
-            <p>Não tem uma conta? <a href="register.php" style="color: #4285f4; text-decoration: none;">Registrar-se</a></p>
+        <div class="login-link">
+            <p>Já tem uma conta? <a href="login.php">Faça login</a></p>
         </div>
     </div>
 
     <script>
         $(document).ready(function() {
-            $('#loginForm').validate({
+            $('#registerForm').validate({
                 rules: {
-                    usuario: {
+                    nome: {
                         required: true,
-                        minlength: 3
+                        minlength: 2
+                    },
+                    email: {
+                        required: true,
+                        email: true
                     },
                     senha: {
                         required: true,
                         minlength: 6
+                    },
+                    confirmar_senha: {
+                        required: true,
+                        equalTo: "#senha"
                     }
                 },
                 messages: {
-                    usuario: {
-                        required: "Por favor, digite seu usuário ou email",
-                        minlength: "O usuário deve ter pelo menos 3 caracteres"
+                    nome: {
+                        required: "Por favor, digite seu nome",
+                        minlength: "O nome deve ter pelo menos 2 caracteres"
+                    },
+                    email: {
+                        required: "Por favor, digite seu email",
+                        email: "Digite um email válido"
                     },
                     senha: {
                         required: "Por favor, digite sua senha",
                         minlength: "A senha deve ter pelo menos 6 caracteres"
+                    },
+                    confirmar_senha: {
+                        required: "Por favor, confirme sua senha",
+                        equalTo: "As senhas não coincidem"
                     }
                 },
                 errorClass: "erro",

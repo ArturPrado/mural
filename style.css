@@ -1,86 +1,568 @@
-    /* Estilo básico para o mural e moderação */
+/* Estilo moderno e responsivo para o Sistema Mural */
+
+* {
+    box-sizing: border-box;
+}
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     margin: 0;
     padding: 0;
     color: #333;
+    min-height: 100vh;
 }
 
-#main {
-    width: 80%;
-    max-width: 800px;
-    margin: 20px auto;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 20px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
-}
-
-#header h1 {
-    text-align: center;
-    color: #444;
-    margin-bottom: 20px;
-}
-
-#formulario_mural label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-#formulario_mural input[type="text"],
-#formulario_mural textarea {
+/* Navegação */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem 0;
+    position: fixed;
+    top: 0;
     width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 14px;
-    resize: vertical;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-#formulario_mural textarea {
-    min-height: 80px;
+.navbar .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.btn {
-    background-color: #4285f4;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    font-size: 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.navbar .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4285f4;
+    text-decoration: none;
 }
 
-.btn:hover {
-    background-color: #357ae8;
+.navbar .nav-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-.recados {
-    list-style-type: none;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fafafa;
+.navbar .nav-links li {
+    margin-left: 2rem;
 }
 
-.recados li {
-    margin-bottom: 6px;
+.navbar .nav-links a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
 }
 
-.recados li strong {
+.navbar .nav-links a:hover {
+    color: #4285f4;
+}
+
+.navbar .user-info {
+    display: flex;
+    align-items: center;
+}
+
+.navbar .user-info span {
+    margin-right: 1rem;
+    color: #666;
+}
+
+/* Conteúdo principal */
+.main-content {
+    margin-top: 80px;
+    padding: 2rem 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: #4285f4;
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+}
+
+.page-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* Formulários */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
     color: #555;
 }
 
-#footer {
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: #f8f9fa;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4285f4;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+    background-color: white;
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Botões */
+.btn {
+    background: linear-gradient(135deg, #4285f4 0%, #357ae8 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Mensagens */
+.recados {
+    list-style-type: none;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    transition: all 0.3s ease;
+}
+
+.recados:hover {
+    border-color: #4285f4;
+    box-shadow: 0 2px 10px rgba(66, 133, 244, 0.1);
+}
+
+.recados li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.recados li strong {
+    color: #4285f4;
+    font-weight: 600;
+}
+
+/* Links de ação */
+.action-links {
+    margin-top: 1rem;
+}
+
+.action-links a {
+    color: #dc3545;
+    text-decoration: none;
+    font-weight: 500;
+    margin-right: 1rem;
+    transition: color 0.3s ease;
+}
+
+.action-links a:hover {
+    color: #c82333;
+    text-decoration: underline;
+}
+
+/* Footer */
+.footer {
     text-align: center;
-    margin-top: 30px;
-    font-size: 12px;
-    color: #999;
+    margin-top: 3rem;
+    padding: 2rem 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .navbar .container {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .navbar .nav-links {
+        margin-top: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .navbar .nav-links li {
+        margin: 0 1rem 0.5rem 0;
+    }
+
+    .main-content {
+        padding: 1rem;
+        margin-top: 120px;
+    }
+
+    .card {
+        padding: 1.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+    }
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Estilos de erro */
+.erro {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Mensagens de status */
+.mensagem {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.mensagem.erro {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.mensagem.sucesso {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* Twitter-like Tweet Cards */
+.tweet-card {
+    border: 1px solid #e1e8ed;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #fff;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.tweet-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
+}
+
+.tweet-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.tweet-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.tweet-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tweet-name {
+    font-weight: bold;
+    color: #14171a;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.tweet-handle {
+    color: #657786;
+    font-size: 14px;
+}
+
+.tweet-date {
+    color: #657786;
+    font-size: 14px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.tweet-content {
+    margin-bottom: 12px;
+}
+
+.tweet-content p {
+    color: #14171a;
+    font-size: 15px;
+    line-height: 1.4;
+    margin: 0;
+    word-wrap: break-word;
+}
+
+.tweet-actions {
+    display: flex;
+    justify-content: space-between;
+    max-width: 300px;
+    margin-top: 8px;
+}
+
+.tweet-action-btn {
+    background: none;
+    border: none;
+    color: #657786;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+
+.tweet-action-btn:hover {
+    background-color: #e8f5fe;
+    color: #1da1f2;
+}
+
+.tweet-action-btn i {
+    font-size: 16px;
+}
+
+.no-tweets {
+    text-align: center;
+    padding: 40px 20px;
+    color: #657786;
+}
+
+.no-tweets p {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.no-tweets p:first-child {
+    font-size: 18px;
+    color: #14171a;
+}
+
+/* Twitter-like Compose */
+.tweet-compose {
+    border: 2px solid #1da1f2 !important;
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%) !important;
+}
+
+.tweet-compose h2 {
+    color: #1da1f2;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+.compose-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.compose-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.compose-input {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.compose-input textarea {
+    width: 100%;
+    min-height: 120px;
+    border: none;
+    resize: none;
+    font-size: 18px;
+    line-height: 1.4;
+    padding: 12px 0;
+    background: transparent;
+    color: #14171a;
+    font-family: inherit;
+}
+
+.compose-input textarea:focus {
+    outline: none;
+}
+
+.compose-input textarea::placeholder {
+    color: #657786;
+    font-size: 18px;
+}
+
+.compose-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e1e8ed;
+}
+
+.char-count {
+    color: #657786;
+    font-size: 14px;
+}
+
+.char-count.warning {
+    color: #ffad1f;
+}
+
+.char-count.danger {
+    color: #e0245e;
+}
+
+.tweet-btn {
+    background: #1da1f2 !important;
+    border-radius: 20px !important;
+    padding: 8px 20px !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+.tweet-btn:hover {
+    background: #1991db !important;
+    transform: none !important;
+}
+
+.tweet-btn:disabled {
+    background: #99c9f2 !important;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tweet-actions {
+        max-width: 250px;
+    }
+
+    .tweet-action-btn {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .tweet-action-btn i {
+        font-size: 14px;
+    }
+
+    .compose-header {
+        gap: 8px;
+    }
+
+    .compose-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .compose-input textarea {
+        font-size: 16px;
+        min-height: 100px;
+    }
+
+    .compose-footer {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .char-count {
+        order: 2;
+    }
 }
