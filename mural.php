@@ -85,6 +85,113 @@ $(document).ready(function() {
 
     // Inicializa contador
     updateCharCount();
+
+    // Funções para likes e comentários
+    $('.like-btn').on('click', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const recadoId = btn.data('recado-id');
+
+        $.ajax({
+            url: 'like.php',
+            type: 'POST',
+            data: { recado_id: recadoId },
+            dataType: 'json',
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function(response) {
+                if (response.success) {
+                    btn.find('.like-count').text(response.total_likes);
+                    if (response.liked) {
+                        btn.addClass('liked');
+                    } else {
+                        btn.removeClass('liked');
+                    }
+                } else {
+                    alert('Erro: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Erro AJAX:', xhr.responseText, status, error);
+                alert('Erro ao processar like: ' + error);
+            }
+        });
+    });
+
+    $('.comment-btn').on('click', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const recadoId = btn.data('recado-id');
+        const commentForm = btn.closest('.tweet-card').find('.comment-form');
+
+        commentForm.slideToggle();
+    });
+
+    $('.add-comment-form').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const recadoId = form.data('recado-id');
+        const comentario = form.find('textarea[name="comentario"]').val();
+        const submitBtn = form.find('.comment-submit-btn');
+
+        submitBtn.prop('disabled', true).text('Enviando...');
+
+        $.ajax({
+            url: 'comment.php',
+            type: 'POST',
+            data: {
+                recado_id: recadoId,
+                comentario: comentario
+            },
+            dataType: 'json',
+            xhrFields: {
+                withCredentials: true
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Adicionar comentário à lista
+                    const commentsSection = form.closest('.tweet-card').find('.comments-section');
+                    if (commentsSection.length === 0) {
+                        // Criar seção de comentários se não existir
+                        form.closest('.tweet-card').find('.tweet-actions').after('<div class="comments-section"></div>');
+                    }
+
+                    const newComment = `
+                        <div class="comment">
+                            <div class="comment-avatar">${response.comment.nome}</div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <span class="comment-author">${response.comment.nome}</span>
+                                    <span class="comment-date">${response.comment.data_criacao}</span>
+                                </div>
+                                <p>${response.comment.comentario.replace(/\n/g, '<br>')}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    form.closest('.tweet-card').find('.comments-section').append(newComment);
+
+                    // Atualizar contador de comentários
+                    const commentBtn = form.closest('.tweet-card').find('.comment-btn .comment-count');
+                    commentBtn.text(parseInt(commentBtn.text()) + 1);
+
+                    // Limpar formulário e esconder
+                    form.find('textarea').val('');
+                    form.closest('.comment-form').slideUp();
+                } else {
+                    alert('Erro: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Erro AJAX comentário:', xhr.responseText, status, error);
+                alert('Erro ao enviar comentário: ' + error);
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).text('Comentar');
+            }
+        });
+    });
 });
 </script>
 </head>
@@ -100,7 +207,7 @@ $(document).ready(function() {
         </ul>
         <div class="user-info">
             <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>!</span>
-            <a href="logout.php" style="margin-left: 10px; color: #fff;">Sair</a>
+            <a href="logout.php" style="margin-left: 10px; color: black;">Sair</a>
         </div>
     </div>
 </nav>
@@ -140,32 +247,108 @@ $(document).ready(function() {
             $seleciona = mysqli_query($conexao, "SELECT * FROM recados ORDER BY id DESC");
             if(mysqli_num_rows($seleciona) > 0){
                 while($res = mysqli_fetch_assoc($seleciona)){
+                    $recado_id = $res['id'];
                     $data_formatada = date('d M Y, H:i', strtotime($res['data_criacao']));
                     $iniciais = strtoupper(substr($res['nome'], 0, 2));
-                    echo '<div class="tweet-card">';
+
+                    // Buscar contagem de likes
+                    $query_likes = "SELECT COUNT(*) as total FROM likes WHERE recado_id = $recado_id";
+                    $result_likes = mysqli_query($conexao, $query_likes);
+                    $likes_data = mysqli_fetch_assoc($result_likes);
+                    $total_likes = $likes_data['total'];
+
+                    // Verificar se usuário logado deu like
+                    $liked = false;
+                    if (isset($_SESSION['usuario_id'])) {
+                        $usuario_id = $_SESSION['usuario_id'];
+                        $query_user_like = "SELECT id FROM likes WHERE recado_id = $recado_id AND usuario_id = $usuario_id";
+                        $result_user_like = mysqli_query($conexao, $query_user_like);
+                        $liked = mysqli_num_rows($result_user_like) > 0;
+                    }
+
+                    // Buscar comentários
+                    $query_comentarios = "SELECT c.*, u.nome FROM comentarios c JOIN usuarios u ON c.usuario_id = u.id WHERE c.recado_id = $recado_id ORDER BY c.data_criacao ASC";
+                    $result_comentarios = mysqli_query($conexao, $query_comentarios);
+                    $comentarios = [];
+                    while ($comentario = mysqli_fetch_assoc($result_comentarios)) {
+                        $comentarios[] = $comentario;
+                    }
+                    $total_comentarios = count($comentarios);
+
+                    echo '<div class="tweet-card" data-recado-id="' . $recado_id . '">';
                     echo '<div class="tweet-header">';
-                    echo '<div class="tweet-avatar">' . $iniciais . '</div>';
+                    // Show profile image if available, else initials
+                    $query_user = "SELECT profile_image FROM usuarios WHERE id = " . intval($res['usuario_id']);
+                    $result_user = mysqli_query($conexao, $query_user);
+                    $user_data = mysqli_fetch_assoc($result_user);
+                    $profile_image = $user_data['profile_image'];
+
+                    if (!empty($profile_image) && file_exists('uploads/' . $profile_image)) {
+                        echo '<div class="tweet-avatar"><img src="uploads/' . htmlspecialchars($profile_image) . '" alt="Avatar" style="width: 40px; height: 40px; border-radius: 20px;"></div>';
+                    } else {
+                        echo '<div class="tweet-avatar">' . $iniciais . '</div>';
+                    }
                     echo '<div class="tweet-user-info">';
                     echo '<div class="tweet-name">' . htmlspecialchars($res['nome']) . '</div>';
                     echo '<div class="tweet-handle">@' . htmlspecialchars(explode('@', $res['email'])[0]) . '</div>';
                     echo '</div>';
-                    echo '<div class="tweet-date">' . $data_formatada . '</div>';
                     echo '</div>';
                     echo '<div class="tweet-content">';
                     echo '<p>' . nl2br(htmlspecialchars($res['mensagem'])) . '</p>';
+                    echo '<div class="tweet-date-bottom">' . $data_formatada . '</div>';
                     echo '</div>';
                     echo '<div class="tweet-actions">';
-                    echo '<button class="tweet-action-btn"><i class="heart-icon">❤️</i> 0</button>';
-                    echo '<button class="tweet-action-btn"><i class="reply-icon">💬</i> 0</button>';
+                    echo '<button class="tweet-action-btn like-btn ' . ($liked ? 'liked' : '') . '" data-recado-id="' . $recado_id . '"><i class="heart-icon">❤️</i> <span class="like-count">' . $total_likes . '</span></button>';
+                    echo '<button class="tweet-action-btn comment-btn" data-recado-id="' . $recado_id . '"><i class="reply-icon">💬</i> <span class="comment-count">' . $total_comentarios . '</span></button>';
                     echo '<button class="tweet-action-btn"><i class="share-icon">🔗</i></button>';
                     echo '</div>';
+
+                    // Exibir comentários
+                    if (!empty($comentarios)) {
+                        echo '<div class="comments-section">';
+                        foreach ($comentarios as $comentario) {
+                            $comentario_data = date('d M Y, H:i', strtotime($comentario['data_criacao']));
+                            $nome_comentario = htmlspecialchars($comentario['nome']);
+                            echo '<div class="comment">';
+                            // Show profile image for comment author if available, else full name
+                            $query_comment_user = "SELECT profile_image FROM usuarios WHERE nome = '" . mysqli_real_escape_string($conexao, $comentario['nome']) . "' LIMIT 1";
+                            $result_comment_user = mysqli_query($conexao, $query_comment_user);
+                            $comment_user_data = mysqli_fetch_assoc($result_comment_user);
+                            $comment_profile_image = $comment_user_data['profile_image'];
+
+                            echo '<div class="comment-avatar">';
+                            if (!empty($comment_profile_image) && file_exists('uploads/' . $comment_profile_image)) {
+                                echo '<img src="uploads/' . htmlspecialchars($comment_profile_image) . '" alt="Avatar" style="width: 30px; height: 30px; border-radius: 15px;">';
+                            } else {
+                                echo htmlspecialchars($nome_comentario);
+                            }
+                            echo '</div>';
+                            echo '<div class="comment-content">';
+                            echo '<div class="comment-header">';
+                            echo '<span class="comment-author">' . $nome_comentario . '</span>';
+                            echo '<span class="comment-date">' . $comentario_data . '</span>';
+                            echo '</div>';
+                            echo '<p>' . nl2br(htmlspecialchars($comentario['comentario'])) . '</p>';
+                            echo '</div>';
+                            echo '</div>';
+                        }
+                        echo '</div>';
+                    }
+
+                    // Formulário para adicionar comentário
+                    echo '<div class="comment-form" style="display: none;">';
+                    echo '<form class="add-comment-form" data-recado-id="' . $recado_id . '">';
+                    echo '<div class="comment-input-group">';
+                    echo '<textarea name="comentario" placeholder="Escreva seu comentário..." maxlength="200" required></textarea>';
+                    echo '<button type="submit" class="btn comment-submit-btn">Comentar</button>';
+                    echo '</div>';
+                    echo '</form>';
+                    echo '</div>';
+
                     echo '</div>';
                 }
             } else {
-                echo '<div class="no-tweets">';
-                echo '<p>📝 Nenhuma mensagem publicada ainda.</p>';
-                echo '<p>Seja o primeiro a compartilhar algo!</p>';
-                echo '</div>';
+                echo '<p>Nenhuma mensagem publicada ainda.</p>';
             }
             ?>
         </div>

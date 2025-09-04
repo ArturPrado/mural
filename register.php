@@ -37,11 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if (mysqli_query($conexao, $query)) {
                 $sucesso = 'Conta criada com sucesso! Faça login.';
-                // Opcional: auto-login após registro
-                // $_SESSION['usuario_id'] = mysqli_insert_id($conexao);
-                // $_SESSION['usuario_nome'] = $nome;
-                // $_SESSION['usuario_logado'] = true;
-                // header('Location: mural.php');
+                
             } else {
                 $erro = 'Erro ao criar conta. Tente novamente.';
             }

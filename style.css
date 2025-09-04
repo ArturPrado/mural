@@ -54,14 +54,14 @@ body {
 }
 
 .navbar .nav-links a {
-    color: #333;
+    color: #000000;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s ease;
 }
 
 .navbar .nav-links a:hover {
-    color: #4285f4;
+    color: #000000;
 }
 
 .navbar .user-info {
@@ -105,13 +105,13 @@ body {
 }
 
 .page-header h1 {
-    color: #4285f4;
+    color: #000000;
     margin-bottom: 0.5rem;
     font-size: 2.5rem;
 }
 
 .page-header p {
-    color: #666;
+    color: #000000;
     font-size: 1.1rem;
 }
 
@@ -313,6 +313,7 @@ body {
     background: #fff;
     transition: all 0.2s ease;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    position: relative;
 }
 
 .tweet-card:hover {
@@ -327,9 +328,10 @@ body {
 }
 
 .tweet-avatar {
-    width: 40px;
+    width: auto;
+    min-width: 60px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 20px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     display: flex;
@@ -338,7 +340,11 @@ body {
     font-weight: bold;
     font-size: 14px;
     margin-right: 12px;
+    padding: 0 10px;
     flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tweet-user-info {
@@ -359,14 +365,20 @@ body {
 }
 
 .tweet-date {
+    display: none;
+}
+
+.tweet-date-bottom {
     color: #657786;
-    font-size: 14px;
-    margin-left: auto;
-    flex-shrink: 0;
+    font-size: 12px;
+    position: absolute;
+    bottom: 8px;
+    right: 16px;
 }
 
 .tweet-content {
     margin-bottom: 12px;
+    padding-bottom: 20px;
 }
 
 .tweet-content p {
@@ -405,6 +417,73 @@ body {
 
 .tweet-action-btn i {
     font-size: 16px;
+}
+
+/* Comments Section */
+.comments-section {
+    margin-top: 12px;
+    border-top: 1px solid #e1e8ed;
+    padding-top: 12px;
+}
+
+.comment {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.comment-avatar {
+    width: auto;
+    min-width: 50px;
+    height: 30px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    margin-right: 8px;
+    padding: 0 8px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.comment-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #14171a;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.comment-date {
+    color: #657786;
+    font-size: 12px;
+}
+
+.comment p {
+    color: #14171a;
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 0;
+    word-wrap: break-word;
 }
 
 .no-tweets {

@@ -56,7 +56,7 @@ if($editar_id){
         </ul>
         <div class="user-info">
             <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>!</span>
-            <a href="logout.php" style="margin-left: 10px; color: #fff;">Sair</a>
+            <a href="logout.php" style="margin-left: 10px; color: black;">Sair</a>
         </div>
     </div>
 </nav>

@@ -13,7 +13,7 @@ $sucesso = '';
 $usuario_id = $_SESSION['usuario_id'];
 
 // Buscar dados do usuário
-$query = "SELECT nome, email FROM usuarios WHERE id = $usuario_id";
+$query = "SELECT nome, email, profile_image FROM usuarios WHERE id = $usuario_id";
 $resultado = mysqli_query($conexao, $query);
 $usuario = mysqli_fetch_assoc($resultado);
 
@@ -71,11 +71,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     $sucesso = 'Dados atualizados com sucesso.';
                 }
+
+                // Handle profile image upload
+                if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == 0) {
+                    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+                    $filename = $_FILES['profile_image']['name'];
+                    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                    if (in_array($ext, $allowed)) {
+                        $new_filename = $usuario_id . '_' . time() . '.' . $ext;
+                        $upload_path = 'uploads/' . $new_filename;
+                        if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $upload_path)) {
+                            $update_image = "UPDATE usuarios SET profile_image = '$new_filename' WHERE id = $usuario_id";
+                            mysqli_query($conexao, $update_image);
+                            $sucesso .= ' Imagem de perfil atualizada com sucesso.';
+                        } else {
+                            $erro = 'Erro ao fazer upload da imagem.';
+                        }
+                    } else {
+                        $erro = 'Tipo de arquivo não permitido. Use apenas JPG, PNG ou GIF.';
+                    }
+                }
             }
         }
     }
     // Atualizar dados para exibir no formulário
-    $query = "SELECT nome, email FROM usuarios WHERE id = $usuario_id";
+    $query = "SELECT nome, email, profile_image FROM usuarios WHERE id = $usuario_id";
     $resultado = mysqli_query($conexao, $query);
     $usuario = mysqli_fetch_assoc($resultado);
 }
@@ -188,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="mensagem sucesso"><?php echo $sucesso; ?></div>
         <?php endif; ?>
 
-        <form id="profileForm" method="POST" action="">
+        <form id="profileForm" method="POST" action="" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="nome">Nome:</label>
                 <input type="text" id="nome" name="nome" value="<?php echo htmlspecialchars($usuario['nome']); ?>" required>
@@ -197,6 +217,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="form-group">
                 <label for="email">Email:</label>
                 <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($usuario['email']); ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="profile_image">Imagem de Perfil:</label>
+                <input type="file" id="profile_image" name="profile_image" accept="image/*">
+                <?php if (!empty($usuario['profile_image'])): ?>
+                    <p>Imagem atual: <img src="uploads/<?php echo htmlspecialchars($usuario['profile_image']); ?>" alt="Imagem de perfil" style="width: 50px; height: 50px; border-radius: 50%;"></p>
+                <?php endif; ?>
             </div>
 
             <hr>
