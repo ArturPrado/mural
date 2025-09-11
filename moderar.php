@@ -8,6 +8,16 @@ if (!isset($_SESSION['usuario_logado']) || $_SESSION['usuario_logado'] !== true)
     exit();
 }
 
+// Verificar se o usuário é administrador
+$query_admin = "SELECT tipo FROM usuarios WHERE id = " . intval($_SESSION['usuario_id']);
+$result_admin = mysqli_query($conexao, $query_admin);
+$user_admin = mysqli_fetch_assoc($result_admin);
+
+if ($user_admin['tipo'] !== 'admin') {
+    header('Location: mural.php');
+    exit();
+}
+
 // Atualizar recado
 if(isset($_POST['atualiza'])){
     $idatualiza = intval($_POST['id']);

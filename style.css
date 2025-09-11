@@ -347,6 +347,20 @@ body {
     text-overflow: ellipsis;
 }
 
+/* remove a */
+div.tweet-avatar.profile-image {
+    background: none !important;
+    background-image: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+}
+
 .tweet-user-info {
     flex: 1;
     min-width: 0;

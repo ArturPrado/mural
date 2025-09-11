@@ -248,6 +248,57 @@ if (isset($_SESSION['usuario_logado']) && $_SESSION['usuario_logado'] === true) 
                 },
                 unhighlight: function(element, errorClass) {
                     $(element).removeClass('erro').css('border-color', '#ddd');
+                },
+                submitHandler: function(form) {
+                    // Verificações adicionais antes do envio
+                    var nome = $('#nome').val();
+                    var email = $('#email').val();
+                    var senha = $('#senha').val();
+                    var confirmarSenha = $('#confirmar_senha').val();
+
+                    // Verificar se os campos não estão vazios
+                    if (!nome.trim() || !email.trim() || !senha.trim() || !confirmarSenha.trim()) {
+                        alert('Todos os campos são obrigatórios.');
+                        return false;
+                    }
+
+                    // Verificar se as senhas coincidem
+                    if (senha !== confirmarSenha) {
+                        alert('As senhas não coincidem.');
+                        return false;
+                    }
+
+                    // Verificar se a senha tem pelo menos 6 caracteres
+                    if (senha.length < 6) {
+                        alert('A senha deve ter pelo menos 6 caracteres.');
+                        return false;
+                    }
+
+                    // Verificar formato de email
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        alert('Digite um email válido.');
+                        return false;
+                    }
+
+                    // Verificar se email já existe (simulação de validação assíncrona)
+                    $.ajax({
+                        url: 'verificar_email.php',
+                        type: 'POST',
+                        data: { email: email, usuario_id: 0 },
+                        async: false,
+                        success: function(response) {
+                            if (response.exists) {
+                                alert('Este email já está cadastrado.');
+                                return false;
+                            }
+                        },
+                        error: function() {
+                            alert('Erro ao verificar email. Tente novamente.');
+                            return false;
+                        }
+                    });
+
+                    form.submit();
                 }
             });
         });

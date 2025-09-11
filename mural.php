@@ -8,6 +8,13 @@ if (!isset($_SESSION['usuario_logado']) || $_SESSION['usuario_logado'] !== true)
     exit();
 }
 
+// Buscar imagem de perfil e tipo do usuário logado
+$query_user = "SELECT profile_image, tipo FROM usuarios WHERE id = " . intval($_SESSION['usuario_id']);
+$result_user = mysqli_query($conexao, $query_user);
+$user_data = mysqli_fetch_assoc($result_user);
+$profile_image = $user_data['profile_image'];
+$is_admin = ($user_data['tipo'] === 'admin');
+
 // Inserir novo pedido/recado
 if(isset($_POST['cadastra'])){
     $nome  = mysqli_real_escape_string($conexao, $_POST['nome']);
@@ -31,12 +38,12 @@ if(isset($_POST['cadastra'])){
 <head>
 <meta charset="utf-8"/>
 <title>Mural de pedidos</title>
-<link rel="stylesheet" href="style.css"/>
+<link rel="stylesheet" href="style.css?v=<?php echo time(); ?>"/>
 <script src="scripts/jquery.js"></script>
 <script src="scripts/jquery.validate.js"></script>
 <script>
 $(document).ready(function() {
-    // Validação do formulário
+    // Validação do formulário principal
     $("#mural").validate({
         rules: {
             nome: { required: true, minlength: 4 },
@@ -49,7 +56,43 @@ $(document).ready(function() {
                 minlength: "A mensagem deve ter no mínimo 10 caracteres",
                 maxlength: "A mensagem deve ter no máximo 280 caracteres"
             }
+        },
+        errorClass: "erro",
+        errorElement: "span",
+        highlight: function(element, errorClass) {
+            $(element).addClass('erro').css('border-color', '#c62828');
+        },
+        unhighlight: function(element, errorClass) {
+            $(element).removeClass('erro').css('border-color', '#ddd');
         }
+    });
+
+    // Validação para formulários de comentários
+    $('.add-comment-form').each(function() {
+        $(this).validate({
+            rules: {
+                comentario: {
+                    required: true,
+                    minlength: 5,
+                    maxlength: 200
+                }
+            },
+            messages: {
+                comentario: {
+                    required: "Digite seu comentário",
+                    minlength: "O comentário deve ter pelo menos 5 caracteres",
+                    maxlength: "O comentário deve ter no máximo 200 caracteres"
+                }
+            },
+            errorClass: "erro",
+            errorElement: "span",
+            highlight: function(element, errorClass) {
+                $(element).addClass('erro').css('border-color', '#c62828');
+            },
+            unhighlight: function(element, errorClass) {
+                $(element).removeClass('erro').css('border-color', '#ddd');
+            }
+        });
     });
 
     // Contador de caracteres
@@ -203,9 +246,16 @@ $(document).ready(function() {
         <ul class="nav-links">
             <li><a href="mural.php">Mural</a></li>
             <li><a href="profile.php">Perfil</a></li>
+            <?php if ($is_admin): ?>
             <li><a href="moderar.php">Moderar</a></li>
+            <?php endif; ?>
         </ul>
         <div class="user-info">
+            <?php
+            if (!empty($profile_image) && file_exists('uploads/' . $profile_image)) {
+                        echo '<img src="uploads/' . htmlspecialchars($profile_image) . '" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;">';
+                    }
+            ?>
             <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>!</span>
             <a href="logout.php" style="margin-left: 10px; color: black;">Sair</a>
         </div>
@@ -225,7 +275,13 @@ $(document).ready(function() {
             <form id="mural" method="post">
                 <div class="compose-header">
                     <div class="compose-avatar">
-                        <?php echo strtoupper(substr($_SESSION['usuario_nome'], 0, 2)); ?>
+                        <?php
+                        if (!empty($profile_image) && file_exists('uploads/' . $profile_image)) {
+                            echo '<img src="uploads/' . htmlspecialchars($profile_image) . '" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%;">';
+                        } else {
+                            echo strtoupper(substr($_SESSION['usuario_nome'], 0, 2));
+                        }
+                        ?>
                     </div>
                     <div class="compose-input">
                         <input type="text" id="nome" name="nome" value="<?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>" style="display: none;">
@@ -284,7 +340,7 @@ $(document).ready(function() {
                     $profile_image = $user_data['profile_image'];
 
                     if (!empty($profile_image) && file_exists('uploads/' . $profile_image)) {
-                        echo '<div class="tweet-avatar"><img src="uploads/' . htmlspecialchars($profile_image) . '" alt="Avatar" style="width: 40px; height: 40px; border-radius: 20px;"></div>';
+                        echo '<div class="tweet-avatar profile-image" style="background: transparent !important; border: none !important; padding: 0 !important;"><img src="uploads/' . htmlspecialchars($profile_image) . '" alt="Avatar" style="width: 60px; height: 60px; border-radius: 50%;"></div>';
                     } else {
                         echo '<div class="tweet-avatar">' . $iniciais . '</div>';
                     }
@@ -311,14 +367,14 @@ $(document).ready(function() {
                             $nome_comentario = htmlspecialchars($comentario['nome']);
                             echo '<div class="comment">';
                             // Show profile image for comment author if available, else full name
-                            $query_comment_user = "SELECT profile_image FROM usuarios WHERE nome = '" . mysqli_real_escape_string($conexao, $comentario['nome']) . "' LIMIT 1";
+                            $query_comment_user = "SELECT profile_image FROM usuarios WHERE id = " . intval($comentario['usuario_id']);
                             $result_comment_user = mysqli_query($conexao, $query_comment_user);
                             $comment_user_data = mysqli_fetch_assoc($result_comment_user);
                             $comment_profile_image = $comment_user_data['profile_image'];
 
                             echo '<div class="comment-avatar">';
                             if (!empty($comment_profile_image) && file_exists('uploads/' . $comment_profile_image)) {
-                                echo '<img src="uploads/' . htmlspecialchars($comment_profile_image) . '" alt="Avatar" style="width: 30px; height: 30px; border-radius: 15px;">';
+                                echo '<img src="uploads/' . htmlspecialchars($comment_profile_image) . '" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%;">';
                             } else {
                                 echo htmlspecialchars($nome_comentario);
                             }

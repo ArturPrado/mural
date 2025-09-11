@@ -42,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!mysqli_query($conexao, $update_query)) {
                 $erro = 'Erro ao atualizar dados.';
             } else {
+                // Atualizar a sessão com o novo nome
+                $_SESSION['usuario_nome'] = $nome;
                 // Atualizar senha se fornecida
                 if (!empty($senha_atual) || !empty($nova_senha) || !empty($confirmar_senha)) {
                     if (empty($senha_atual) || empty($nova_senha) || empty($confirmar_senha)) {
@@ -77,7 +79,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $allowed = ['jpg', 'jpeg', 'png', 'gif'];
                     $filename = $_FILES['profile_image']['name'];
                     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-                    if (in_array($ext, $allowed)) {
+                    $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif'];
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mime_type = finfo_file($finfo, $_FILES['profile_image']['tmp_name']);
+                    finfo_close($finfo);
+
+                    if (in_array($ext, $allowed) && in_array($mime_type, $allowed_mime_types)) {
                         $new_filename = $usuario_id . '_' . time() . '.' . $ext;
                         $upload_path = 'uploads/' . $new_filename;
                         if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $upload_path)) {
@@ -88,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $erro = 'Erro ao fazer upload da imagem.';
                         }
                     } else {
-                        $erro = 'Tipo de arquivo não permitido. Use apenas JPG, PNG ou GIF.';
+                        $erro = 'Tipo de arquivo não permitido. Use apenas JPG, JPEG, PNG ou GIF.';
                     }
                 }
             }
@@ -191,11 +198,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .logout-link a:hover {
             text-decoration: underline;
         }
+        .btn-back {
+            display: inline-block;
+            margin-bottom: 10px;
+            padding: 12px 24px;
+            background-color: #4285f4;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 6px rgba(66, 133, 244, 0.4);
+        }
+        .btn-back:hover {
+            background-color: #357ae8;
+            box-shadow: 0 4px 12px rgba(53, 122, 232, 0.6);
+        }
     </style>
 </head>
 <body>
     <div class="profile-container">
         <div class="profile-header">
+            <a href="mural.php" class="btn-back">← Voltar ao Mural</a>
             <h1>Perfil do Usuário</h1>
             <p>Atualize seus dados e senha</p>
         </div>
@@ -208,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="mensagem sucesso"><?php echo $sucesso; ?></div>
         <?php endif; ?>
 
-        <form id="profileForm" method="POST" action="" enctype="multipart/form-data">
+        <form id="profileForm" method="POST" action="" enctype="multipart/form-data" novalidate>
             <div class="form-group">
                 <label for="nome">Nome:</label>
                 <input type="text" id="nome" name="nome" value="<?php echo htmlspecialchars($usuario['nome']); ?>" required>
@@ -221,27 +246,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <div class="form-group">
                 <label for="profile_image">Imagem de Perfil:</label>
-                <input type="file" id="profile_image" name="profile_image" accept="image/*">
-                <?php if (!empty($usuario['profile_image'])): ?>
-                    <p>Imagem atual: <img src="uploads/<?php echo htmlspecialchars($usuario['profile_image']); ?>" alt="Imagem de perfil" style="width: 50px; height: 50px; border-radius: 50%;"></p>
-                <?php endif; ?>
+                <input type="file" id="profile_image" name="profile_image">
+                    <?php if (!empty($usuario['profile_image'])): ?>
+                        <p>Imagem atual: <img src="uploads/<?php echo htmlspecialchars($usuario['profile_image']); ?>" alt="Imagem de perfil" style="width: 60px; height: 60px; border-radius: 50%;"></p>
+                    <?php endif; ?>
             </div>
 
             <hr>
 
             <div class="form-group">
-                <label for="senha_atual">Senha Atual:</label>
-                <input type="password" id="senha_atual" name="senha_atual" placeholder="Deixe em branco para não alterar">
+                <label>
+                    <input type="checkbox" id="change_password"> Alterar senha?
+                </label>
             </div>
 
-            <div class="form-group">
-                <label for="nova_senha">Nova Senha:</label>
-                <input type="password" id="nova_senha" name="nova_senha" placeholder="Deixe em branco para não alterar">
-            </div>
+            <div id="password-fields" style="display: none;">
+                <div class="form-group">
+                    <label for="senha_atual">Senha Atual:</label>
+                    <input type="password" id="senha_atual" name="senha_atual" placeholder="Digite sua senha atual">
+                </div>
 
-            <div class="form-group">
-                <label for="confirmar_senha">Confirmar Nova Senha:</label>
-                <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Deixe em branco para não alterar">
+                <div class="form-group">
+                    <label for="nova_senha">Nova Senha:</label>
+                    <input type="password" id="nova_senha" name="nova_senha" placeholder="Digite a nova senha">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmar_senha">Confirmar Nova Senha:</label>
+                    <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme a nova senha">
+                </div>
             </div>
 
             <button type="submit" class="btn-save">Salvar Alterações</button>
@@ -254,6 +287,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script>
         $(document).ready(function() {
+            // Toggle password fields
+            $('#change_password').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#password-fields').slideDown();
+                } else {
+                    $('#password-fields').slideUp();
+                    // Clear password fields when unchecked
+                    $('#senha_atual, #nova_senha, #confirmar_senha').val('');
+                }
+            });
+
             $('#profileForm').validate({
                 rules: {
                     nome: {
@@ -264,10 +308,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         required: true,
                         email: true
                     },
+                    profile_image: {
+                        extension: "jpg|jpeg|png|gif"
+                    },
+                    senha_atual: {
+                        required: function(element) {
+                            return $('#change_password').is(':checked');
+                        }
+                    },
                     nova_senha: {
+                        required: function(element) {
+                            return $('#change_password').is(':checked');
+                        },
                         minlength: 6
                     },
                     confirmar_senha: {
+                        required: function(element) {
+                            return $('#change_password').is(':checked');
+                        },
                         equalTo: "#nova_senha"
                     }
                 },
@@ -280,10 +338,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         required: "Por favor, digite seu email",
                         email: "Digite um email válido"
                     },
+                    profile_image: {
+                        extension: "Por favor, envie um arquivo com uma extensão válida: jpg, jpeg, png ou gif."
+                    },
+                    senha_atual: {
+                        required: "Digite sua senha atual"
+                    },
                     nova_senha: {
+                        required: "Digite a nova senha",
                         minlength: "A nova senha deve ter pelo menos 6 caracteres"
                     },
                     confirmar_senha: {
+                        required: "Confirme a nova senha",
                         equalTo: "As senhas não coincidem"
                     }
                 },
@@ -294,6 +360,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 },
                 unhighlight: function(element, errorClass) {
                     $(element).removeClass('erro').css('border-color', '#ddd');
+                },
+                submitHandler: function(form) {
+                    // Verificações adicionais antes do envio
+                    if ($('#change_password').is(':checked')) {
+                        var senhaAtual = $('#senha_atual').val();
+                        var novaSenha = $('#nova_senha').val();
+                        var confirmarSenha = $('#confirmar_senha').val();
+
+                        if (novaSenha !== confirmarSenha) {
+                            alert('As senhas não coincidem');
+                            return false;
+                        }
+
+                        if (novaSenha.length < 6) {
+                            alert('A nova senha deve ter pelo menos 6 caracteres');
+                            return false;
+                        }
+                    }
+
+                    // Verificar se email já existe (simulação de validação assíncrona)
+                    var email = $('#email').val();
+                    var usuarioId = <?php echo $usuario_id; ?>;
+
+                    $.ajax({
+                        url: 'verificar_email.php',
+                        type: 'POST',
+                        data: { email: email, usuario_id: usuarioId },
+                        async: false,
+                        success: function(response) {
+                            if (response.exists) {
+                                alert('Este email já está em uso por outro usuário.');
+                                return false;
+                            }
+                        },
+                        error: function() {
+                            alert('Erro ao verificar email. Tente novamente.');
+                            return false;
+                        }
+                    });
+
+                    form.submit();
                 }
             });
         });
